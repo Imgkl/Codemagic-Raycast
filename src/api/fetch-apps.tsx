@@ -22,7 +22,6 @@ export const fetchApplications = async (): Promise<Record<string, CodemagicApp[]
     }
 
     const data: CodemagicAppResponse = (await response.json()) as CodemagicAppResponse;
-    // Fetch the last build status for each application
 
     const configuredApps: CodemagicApp[] = await Promise.all(
       data.applications

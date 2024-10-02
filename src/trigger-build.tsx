@@ -77,7 +77,7 @@ const TriggerBuildCommand = () => {
       {Object.keys(groupedApplications).map((ownerName) => (
         <List.Section key={ownerName} title={ownerName}>
           {groupedApplications[ownerName].map((app) => {
-            const workflowCount = Object.keys(app.workflows).length; // Convert the object keys to an array and check its length
+            const workflowCount = Object.keys(app.workflows).length;
             const branchCount = app.branches.length;
             const accessories = [
               {

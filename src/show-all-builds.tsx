@@ -10,20 +10,18 @@ const ShowAllBuilds = () => {
   const [appBuilds, setAppBuilds] = useState<GroupedAppBuilds[] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-   const loadBuilds = async () => {
-     try {
-       setIsLoading(true);
-       setAppBuilds(null);
-       const groupedAppBuilds = await fetchAllBuilds();
-       setAppBuilds(groupedAppBuilds);
-     } finally {
-       setIsLoading(false);
-     }
-   };
+  const loadBuilds = async () => {
+    try {
+      setIsLoading(true);
+      setAppBuilds(null);
+      const groupedAppBuilds = await fetchAllBuilds();
+      setAppBuilds(groupedAppBuilds);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-   
-
     loadBuilds();
   }, []);
 
@@ -31,26 +29,26 @@ const ShowAllBuilds = () => {
     return <List isLoading={true} searchBarPlaceholder="Loading builds..." />;
   }
 
-   if (appBuilds === null) {
-     return (
-       <List
-         actions={
-           <ActionPanel>
-             <Action title="Open Extension Preferences" onAction={openExtensionPreferences} />
-             <Action.OpenInBrowser
-               title="Contact Developer"
-               url="mailto:hi@gokul.dev?subject=Raycast%20x%20Codemagic%20extension"
-             />
-           </ActionPanel>
-         }
-       >
-         <List.EmptyView
-           title="Is your Access Token Correct?"
-           description="Please check your API token in Raycast settings > Extensions > CodeMagic. If you need help, contact the developer."
-         />
-       </List>
-     );
-   }
+  if (appBuilds === null) {
+    return (
+      <List
+        actions={
+          <ActionPanel>
+            <Action title="Open Extension Preferences" onAction={openExtensionPreferences} />
+            <Action.OpenInBrowser
+              title="Contact Developer"
+              url="mailto:hi@gokul.dev?subject=Raycast%20x%20Codemagic%20extension"
+            />
+          </ActionPanel>
+        }
+      >
+        <List.EmptyView
+          title="Is your Access Token Correct?"
+          description="Please check your API token in Raycast settings > Extensions > CodeMagic. If you need help, contact the developer."
+        />
+      </List>
+    );
+  }
 
   if (!appBuilds || appBuilds.length === 0) {
     return <List.EmptyView title="No builds found" description="No builds available to display." />;
@@ -107,7 +105,6 @@ const ShowAllBuilds = () => {
                           <List.Item.Detail.Metadata.Separator />
                         </>
                       )}
-                      {/* Combine Build Information and Xcode Version */}
                       <List.Item.Detail.Metadata.TagList title="Flutter & Xcode Version">
                         <List.Item.Detail.Metadata.TagList.Item
                           text={`${build.config.buildSettings.flutterVersion}`}
@@ -118,7 +115,6 @@ const ShowAllBuilds = () => {
                           color="grey"
                         />
                       </List.Item.Detail.Metadata.TagList>
-                      {/* Separate Platforms Section */}
                       <List.Item.Detail.Metadata.Label
                         title="Platforms"
                         text={build.config.buildSettings.platforms?.map(formatPlatformName).join(", ") || "Unknown"}

@@ -21,7 +21,6 @@ export const cancelBuild = async (buildId: string): Promise<void> => {
       return;
     }
 
-    // Handle non-2xx response status codes
     if (!response.ok) {
       throw new Error(`Failed to cancel the build: ${response.statusText}`);
     }
