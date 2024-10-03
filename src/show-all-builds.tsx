@@ -129,7 +129,7 @@ const ShowAllBuilds = () => {
                     title="View on Codemagic"
                     url={`https://codemagic.io/app/${build.appId}/build/${build._id}`}
                   />
-                  <Action.OpenInBrowser title="View Commit" url={build.commit.url} />
+                  <Action.OpenInBrowser title="View Commit on GitHub" url={build.commit.url} />
                   <Action title="Refresh Apps" onAction={loadBuilds} />
                 </ActionPanel>
               }
