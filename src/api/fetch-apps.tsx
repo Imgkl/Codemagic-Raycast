@@ -19,7 +19,6 @@ export const fetchApplicationsAndRefreshBranches = async (): Promise<
 > => {
   const preferences = getPreferenceValues<Preferences>();
   const toast = await showToast(Toast.Style.Animated, "Fetching applications...");
-  console.log("Inside fetchApplicationsAndRefreshBranches");
 
   try {
     const response = await fetch("https://api.codemagic.io/apps", {
