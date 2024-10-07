@@ -1,7 +1,7 @@
 import { Action, ActionPanel, ImageMask, List, openExtensionPreferences } from "@raycast/api";
 import { useEffect, useState } from "react";
 import { cancelBuild } from "./api/cancel-build";
-import { fetchApplications, FetchAppState } from "./api/fetch-apps";
+import { fetchApplicationsAndRefreshBranches, FetchAppState } from "./api/fetch-apps";
 import WorkflowSelector from "./components/workflow-selector";
 import { CodemagicApp } from "./interface/codemagic-apps";
 import { capitalize } from "./util/capitalise";
@@ -14,11 +14,12 @@ const TriggerBuildCommand = () => {
 
   const cancellableStatuses = ["queued", "preparing", "fetching", "building", "finishing", "publishing", "testing"];
 
+
   const loadApplications = async () => {
     setIsLoading(true);
     setGroupedApplications(null);
     try {
-      const [state, apps] = await fetchApplications();
+      const [state, apps] = await fetchApplicationsAndRefreshBranches();
       setFetchState(state);
       setGroupedApplications(apps);
     } finally {
@@ -165,7 +166,7 @@ const TriggerBuildCommand = () => {
                         icon="x-mark-circle-16"
                       />
                     )}
-                    <Action title="Refresh Apps" onAction={loadApplications} />
+                    <Action title="Refresh Apps and Branches" onAction={loadApplications} />
                   </ActionPanel>
                 }
               />

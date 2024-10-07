@@ -3,7 +3,9 @@ import fetch from "node-fetch";
 import { CodemagicApp, CodemagicAppResponse } from "../interface/codemagic-apps";
 import { capitalize } from "../util/capitalise";
 import { fetchBuildStatus } from "./fetch_build-status";
+import { refreshBranches } from "./refresh-branches";
 
+// Reuse the same enum for states
 export enum FetchAppState {
   SUCCESS = "success",
   NO_FLUTTER_APPS = "no_flutter_apps",
@@ -12,7 +14,9 @@ export enum FetchAppState {
   ERROR = "error",
 }
 
-export const fetchApplications = async (): Promise<[FetchAppState, Record<string, CodemagicApp[]> | null]> => {
+export const fetchApplicationsAndRefreshBranches = async (): Promise<
+  [FetchAppState, Record<string, CodemagicApp[]> | null]
+> => {
   const preferences = getPreferenceValues<Preferences>();
   const toast = await showToast(Toast.Style.Animated, "Fetching applications...");
   try {
@@ -70,8 +74,32 @@ export const fetchApplications = async (): Promise<[FetchAppState, Record<string
     }
 
     toast.style = Toast.Style.Animated;
-    toast.title = "Grouping applications based on organization";
-    const groupedApps: Record<string, CodemagicApp[]> = uiConfiguredApps.reduce(
+    toast.title = "Refreshing branches";
+
+    for (const app of uiConfiguredApps) {
+      await refreshBranches(app._id);
+    }
+    const updatedResponse = await fetch("https://api.codemagic.io/apps", {
+      headers: {
+        Authorization: `Bearer ${preferences["codemagic-access-token"]}`,
+      },
+    });
+
+    if (!updatedResponse.ok) {
+      toast.style = Toast.Style.Failure;
+      toast.title = "Failed to fetch updated applications";
+      return [FetchAppState.ERROR, null];
+    }
+
+    const updatedData: CodemagicAppResponse = (await updatedResponse.json()) as CodemagicAppResponse;
+
+    const updatedFlutterApps = updatedData.applications.filter(
+      (app) => app.projectType === "flutter-app" || app.projectType === "flutter-package",
+    );
+
+    const updatedConfiguredApps = updatedFlutterApps.filter((app) => app.isConfigured === true);
+
+    const groupedApps: Record<string, CodemagicApp[]> = updatedConfiguredApps.reduce(
       (groups, app) => {
         const ownerName = capitalize(app.repository.owner.name);
         if (!groups[ownerName]) {
@@ -82,7 +110,6 @@ export const fetchApplications = async (): Promise<[FetchAppState, Record<string
       },
       {} as Record<string, CodemagicApp[]>,
     );
-
     toast.style = Toast.Style.Animated;
     toast.title = "Sorting applications based on organization";
     const sortedGroupedApps: Record<string, CodemagicApp[]> = Object.keys(groupedApps)
@@ -94,12 +121,14 @@ export const fetchApplications = async (): Promise<[FetchAppState, Record<string
         },
         {} as Record<string, CodemagicApp[]>,
       );
+
     toast.style = Toast.Style.Success;
-    toast.title = "Applications fetched successfully";
+    toast.title = "Applications and branches updated successfully";
     return [FetchAppState.SUCCESS, sortedGroupedApps];
   } catch (error) {
     toast.style = Toast.Style.Failure;
-    toast.title = "Failed to load applications";
+    toast.title = "Failed to load applications or refresh branches";
+    console.error(error);
     return [FetchAppState.ERROR, null];
   }
 };
