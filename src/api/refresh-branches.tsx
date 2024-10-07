@@ -1,4 +1,5 @@
 import { getPreferenceValues, showToast, Toast } from "@raycast/api";
+import fetch from "node-fetch";
 
 // Reuse refreshBranches function
 export const refreshBranches = async (appId: string): Promise<null> => {
@@ -14,8 +15,6 @@ export const refreshBranches = async (appId: string): Promise<null> => {
         "x-auth-token": token,
       },
     });
-
-    console.log(response.status);
     if (response.status === 202) {
       return null;
     } else {

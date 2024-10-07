@@ -1,11 +1,11 @@
 import { getPreferenceValues, showToast, Toast } from "@raycast/api";
+import { useCachedPromise } from "@raycast/utils";
 import fetch from "node-fetch";
 import { CodemagicApp, CodemagicAppResponse } from "../interface/codemagic-apps";
 import { capitalize } from "../util/capitalise";
 import { fetchBuildStatus } from "./fetch_build-status";
 import { refreshBranches } from "./refresh-branches";
 
-// Reuse the same enum for states
 export enum FetchAppState {
   SUCCESS = "success",
   NO_FLUTTER_APPS = "no_flutter_apps",
@@ -19,6 +19,8 @@ export const fetchApplicationsAndRefreshBranches = async (): Promise<
 > => {
   const preferences = getPreferenceValues<Preferences>();
   const toast = await showToast(Toast.Style.Animated, "Fetching applications...");
+  console.log("Inside fetchApplicationsAndRefreshBranches");
+
   try {
     const response = await fetch("https://api.codemagic.io/apps", {
       headers: {
@@ -97,7 +99,15 @@ export const fetchApplicationsAndRefreshBranches = async (): Promise<
       (app) => app.projectType === "flutter-app" || app.projectType === "flutter-package",
     );
 
-    const updatedConfiguredApps = updatedFlutterApps.filter((app) => app.isConfigured === true);
+    const updatedConfiguredApps = updatedFlutterApps
+      .filter((updatedApp) => updatedApp.isConfigured === true)
+      .map((updatedApp) => {
+        const originalApp = uiConfiguredApps.find((app) => app._id === updatedApp._id);
+        return {
+          ...updatedApp,
+          lastBuild: originalApp?.lastBuild || null,
+        };
+      });
 
     const groupedApps: Record<string, CodemagicApp[]> = updatedConfiguredApps.reduce(
       (groups, app) => {
@@ -110,6 +120,7 @@ export const fetchApplicationsAndRefreshBranches = async (): Promise<
       },
       {} as Record<string, CodemagicApp[]>,
     );
+
     toast.style = Toast.Style.Animated;
     toast.title = "Sorting applications based on organization";
     const sortedGroupedApps: Record<string, CodemagicApp[]> = Object.keys(groupedApps)
@@ -131,4 +142,14 @@ export const fetchApplicationsAndRefreshBranches = async (): Promise<
     console.error(error);
     return [FetchAppState.ERROR, null];
   }
+};
+export const useFetchApplicationsAndRefreshBranches = () => {
+  const { data, isLoading, error, revalidate } = useCachedPromise(fetchApplicationsAndRefreshBranches, []);
+
+  return {
+    data,
+    isLoading,
+    error,
+    revalidate,
+  };
 };
